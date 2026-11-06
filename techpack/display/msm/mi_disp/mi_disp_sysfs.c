@@ -246,6 +246,18 @@ static ssize_t brightness_clone_store(struct device *device,
 	return ret ? ret : count;
 }
 
+/* HyperOS and displayfeature read the clone scale here; without it they fall back to 8-bit. */
+static ssize_t max_brightness_clone_show(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct disp_display *dd_ptr = to_disp_display(device);
+	struct dsi_display *display = (struct dsi_display *)dd_ptr->display;
+
+	if (dd_ptr->intf_type != MI_INTF_DSI || !display || !display->panel)
+		return -EINVAL;
+	return snprintf(buf, PAGE_SIZE, "%d\n", display->panel->mi_cfg.max_brightness_clone);
+}
+
 static ssize_t hw_vsync_info_show(struct device *device,
 		struct device_attribute *attr, char *buf)
 {
@@ -305,6 +317,7 @@ static DEVICE_ATTR_RO(wp_info);
 static DEVICE_ATTR_RO(dynamic_fps);
 static DEVICE_ATTR_RW(doze_brightness);
 static DEVICE_ATTR_RW(brightness_clone);
+static DEVICE_ATTR_RO(max_brightness_clone);
 static DEVICE_ATTR_RO(hw_vsync_info);
 static DEVICE_ATTR_RO(cell_id);
 static DEVICE_ATTR_RO(fod_ui);
@@ -317,6 +330,7 @@ static struct attribute *disp_feature_attrs[] = {
 	&dev_attr_dynamic_fps.attr,
 	&dev_attr_doze_brightness.attr,
 	&dev_attr_brightness_clone.attr,
+	&dev_attr_max_brightness_clone.attr,
 	&dev_attr_hw_vsync_info.attr,
 	&dev_attr_cell_id.attr,
 	&dev_attr_fod_ui.attr,
