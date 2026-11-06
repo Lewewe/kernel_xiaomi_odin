@@ -1247,6 +1247,13 @@ SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 	down_read(&uts_sem);
 	memcpy(&tmp, utsname(), sizeof(tmp));
 	up_read(&uts_sem);
+	/*
+	 * HyperOS port: the Tethering APEX's netbpfload refuses kernels < 5.10.
+	 * This tree carries the 5.10 BPF backports, so report the same version
+	 * LineageOS sets via ro.bpf.kver_override, only to that loader.
+	 */
+	if (!strncmp(current->comm, "netbpfload", TASK_COMM_LEN))
+		strscpy(tmp.release, "5.10.239", sizeof(tmp.release));
 	if (copy_to_user(name, &tmp, sizeof(tmp)))
 		return -EFAULT;
 
